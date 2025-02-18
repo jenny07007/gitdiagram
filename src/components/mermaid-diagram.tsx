@@ -13,6 +13,10 @@ const MermaidChart = ({ chart, zoomingEnabled = true }: MermaidChartProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    console.log("=== Received Mermaid Diagram ===");
+    console.log(chart);
+    console.log("==============================");
+
     mermaid.initialize({
       startOnLoad: true,
       theme: "neutral",
@@ -36,6 +40,7 @@ const MermaidChart = ({ chart, zoomingEnabled = true }: MermaidChartProps) => {
           filter: brightness(0.85);
         }
       `,
+      securityLevel: "loose",
     });
 
     const initializePanZoom = () => {

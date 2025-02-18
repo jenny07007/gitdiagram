@@ -157,9 +157,7 @@ Ensure that your diagram adheres strictly to the given explanation, without addi
 For general direction, the provided example below is how you should structure your code:
 
 ```mermaid
-flowchart TD 
-    %% or graph TD, your choice
-
+graph TD 
     %% Global entities
     A("Entity A"):::external
     %% more...
@@ -182,12 +180,16 @@ flowchart TD
     %% and a lot more...
 
     %% Styles
-    classDef frontend %%...
-    %% and a lot more...
+    classDef frontend fill:#f9f,stroke:#333,stroke-width:2px
+    classDef backend fill:#bbf,stroke:#333,stroke-width:2px
+    classDef database fill:#dfd,stroke:#333,stroke-width:2px
+    classDef external fill:#fff,stroke:#333,stroke-width:2px
+    classDef solana fill:#ffd700,stroke:#333,stroke-width:2px
 ```
 
 EXTREMELY Important notes on syntax!!! (PAY ATTENTION TO THIS):
 - Make sure to add colour to the diagram!!! This is extremely critical.
+- You MUST include style definitions for any classes you use (e.g., frontend, backend, database, etc.) using classDef.
 - In Mermaid.js syntax, we cannot include special characters for nodes without being inside quotes! For example: `EX[/api/process (Backend)]:::api` and `API -->|calls Process()| Backend` are two examples of syntax errors. They should be `EX["/api/process (Backend)"]:::api` and `API -->|"calls Process()"| Backend` respectively. Notice the quotes. This is extremely important. Make sure to include quotes for any string that contains special characters.
 - In Mermaid.js syntax, you cannot apply a class style directly within a subgraph declaration. For example: `subgraph "Frontend Layer":::frontend` is a syntax error. However, you can apply them to nodes within the subgraph. For example: `Example["Example Node"]:::frontend` is valid, and `class Example1,Example2 frontend` is valid.
 - In Mermaid.js syntax, there cannot be spaces in the relationship label names. For example: `A -->| "example relationship" | B` is a syntax error. It should be `A -->|"example relationship"| B` 

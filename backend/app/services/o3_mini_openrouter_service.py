@@ -1,6 +1,7 @@
 from openai import OpenAI
 from dotenv import load_dotenv
 from app.utils.format_message import format_user_message
+from app.services.base_llm_service import BaseLLMService
 import tiktoken
 import os
 import aiohttp
@@ -10,7 +11,7 @@ from typing import Literal, AsyncGenerator
 load_dotenv()
 
 
-class OpenRouterO3Service:
+class OpenRouterO3Service(BaseLLMService):
     def __init__(self):
         self.default_client = OpenAI(
             base_url="https://openrouter.ai/api/v1",
@@ -19,7 +20,7 @@ class OpenRouterO3Service:
         self.encoding = tiktoken.get_encoding("o200k_base")
         self.base_url = "https://openrouter.ai/api/v1/chat/completions"
 
-    def call_o3_api(
+    def call_api(
         self,
         system_prompt: str,
         data: dict,
@@ -49,8 +50,10 @@ class OpenRouterO3Service:
 
         completion = client.chat.completions.create(
             extra_headers={
-                "HTTP-Referer": "https://gitdiagram.com",  # Optional. Site URL for rankings on openrouter.ai.
-                "X-Title": "gitdiagram",  # Optional. Site title for rankings on openrouter.ai.
+                # Optional. Site URL for rankings on openrouter.ai.
+                "HTTP-Referer": "https://gitdiagram.com",
+                # Optional. Site title for rankings on openrouter.ai.
+                "X-Title": "gitdiagram",
             },
             model="openai/o3-mini",  # Can be configured as needed
             reasoning_effort=reasoning_effort,  # Can be adjusted based on needs
@@ -67,7 +70,7 @@ class OpenRouterO3Service:
 
         return completion.choices[0].message.content
 
-    async def call_o3_api_stream(
+    async def call_api_stream(
         self,
         system_prompt: str,
         data: dict,

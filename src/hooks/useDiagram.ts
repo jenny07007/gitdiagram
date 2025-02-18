@@ -21,7 +21,10 @@ interface StreamState {
     | "diagram"
     | "diagram_chunk"
     | "complete"
-    | "error";
+    | "error"
+    | "complete_diagram"
+    | "complete_explanation"
+    | "complete_mapping";
   message?: string;
   explanation?: string;
   mapping?: string;
@@ -37,6 +40,8 @@ interface StreamResponse {
   mapping?: string;
   diagram?: string;
   error?: string;
+  explanation_chunk?: string;
+  is_last?: boolean;
 }
 
 export function useDiagram(username: string, repo: string) {
@@ -90,19 +95,24 @@ export function useDiagram(username: string, repo: string) {
         // Process the stream
         const processStream = async () => {
           try {
+            let buffer = "";
             while (true) {
               const { done, value } = await reader.read();
               if (done) break;
 
-              // Convert the chunk to text
-              const chunk = new TextDecoder().decode(value);
-              const lines = chunk.split("\n");
+              // Accumulate chunks in a buffer
+              buffer += new TextDecoder().decode(value);
 
-              // Process each SSE message
-              for (const line of lines) {
-                if (line.startsWith("data: ")) {
+              // Process complete SSE messages (separated by "\n\n")
+              let separatorIndex: number;
+              while ((separatorIndex = buffer.indexOf("\n\n")) !== -1) {
+                const rawMessage = buffer.slice(0, separatorIndex);
+                buffer = buffer.slice(separatorIndex + 2);
+                if (rawMessage.startsWith("data: ")) {
                   try {
-                    const data = JSON.parse(line.slice(6)) as StreamResponse;
+                    const data = JSON.parse(
+                      rawMessage.slice(6),
+                    ) as StreamResponse;
 
                     // If we receive an error, set loading to false immediately
                     if (data.error) {
@@ -180,12 +190,32 @@ export function useDiagram(username: string, repo: string) {
                           setState((prev) => ({ ...prev, diagram }));
                         }
                         break;
-                      case "complete":
-                        setState({
-                          status: "complete",
-                          explanation: data.explanation,
+                      case "complete_diagram":
+                        setState((prev) => ({
+                          ...prev,
                           diagram: data.diagram,
-                        });
+                        }));
+                        break;
+                      case "complete_explanation":
+                        if (data.explanation_chunk) {
+                          setState((prev) => ({
+                            ...prev,
+                            explanation:
+                              (prev.explanation ?? "") + data.explanation_chunk,
+                          }));
+                        }
+                        break;
+                      case "complete_mapping":
+                        setState((prev) => ({
+                          ...prev,
+                          mapping: data.mapping,
+                        }));
+                        break;
+                      case "complete":
+                        setState((prev) => ({
+                          ...prev,
+                          status: "complete",
+                        }));
                         const date = await getLastGeneratedDate(username, repo);
                         setLastGenerated(date ?? undefined);
                         if (!hasFreeGeneration) {
@@ -263,15 +293,17 @@ export function useDiagram(username: string, repo: string) {
         return;
       }
 
+      // Not a fan of storing api keys in local storage.
+
       // Only check for API key if we need to generate a new diagram
-      const storedApiKey = localStorage.getItem("openrouter_key");
-      if (hasFreeGeneration && !storedApiKey) {
-        setError(
-          "You've used your one free diagram. Please enter your API key to continue. As a student, I can't afford to keep it totally free and I hope you understand :)",
-        );
-        setState({ status: "error", error: "API key required" });
-        return;
-      }
+      // const storedApiKey = localStorage.getItem("openrouter_key");
+      // if (hasFreeGeneration && !storedApiKey) {
+      //   setError(
+      //     "You've used your one free diagram. Please enter your API key to continue. As a student, I can't afford to keep it totally free and I hope you understand :)",
+      //   );
+      //   setState({ status: "error", error: "API key required" });
+      //   return;
+      // }
 
       // Get cost estimate
       const costEstimate = await getCostOfGeneration(
@@ -304,7 +336,7 @@ export function useDiagram(username: string, repo: string) {
     } finally {
       setLoading(false);
     }
-  }, [username, repo, generateDiagram, hasFreeGeneration]);
+  }, [username, repo, generateDiagram]);
 
   useEffect(() => {
     void getDiagram();
