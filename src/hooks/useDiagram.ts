@@ -178,11 +178,10 @@ export function useDiagram(username: string, repo: string) {
                         }));
                         break;
                       case "diagram":
-                        setState((prev) => ({
-                          ...prev,
-                          status: "diagram",
-                          message: data.message,
-                        }));
+                        if (data.chunk) {
+                          diagram += data.chunk;
+                          setState((prev) => ({ ...prev, diagram }));
+                        }
                         break;
                       case "diagram_chunk":
                         if (data.chunk) {
@@ -191,6 +190,10 @@ export function useDiagram(username: string, repo: string) {
                         }
                         break;
                       case "complete_diagram":
+                        console.log(
+                          "Received complete_diagram, final diagram:",
+                          data.diagram,
+                        );
                         setState((prev) => ({
                           ...prev,
                           diagram: data.diagram,
@@ -229,9 +232,16 @@ export function useDiagram(username: string, repo: string) {
                       case "error":
                         setState({ status: "error", error: data.error });
                         break;
+                      default:
+                        break;
                     }
                   } catch (e) {
-                    console.error("Error parsing SSE message:", e);
+                    console.error(
+                      "Error parsing SSE message:",
+                      e,
+                      "Raw message was:",
+                      rawMessage,
+                    );
                   }
                 }
               }

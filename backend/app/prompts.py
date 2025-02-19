@@ -154,46 +154,74 @@ No code fence or markdown ticks needed, simply return the Mermaid.js code.
 
 Ensure that your diagram adheres strictly to the given explanation, without adding or omitting any significant components or relationships. 
 
-For general direction, the provided example below is how you should structure your code:
+EXTREMELY Important notes on syntax!!! (PAY ATTENTION TO THIS):
+1. Node Formatting:
+   - Every node MUST have both an ID and a label in quotes: `NodeID["Node Label"]`
+   - Never leave a node incomplete or without proper formatting
+   - Bad: `Compress` or `Compress mermaid-diagram.tsx:17:12`
+   - Good: `CompressAPI["Compress API"]:::backend`
 
-```mermaid
+2. Style and Classes:
+   - Make sure to add colour to the diagram!!! This is extremely critical.
+   - You MUST include style definitions for any classes you use (e.g., frontend, backend, database, etc.) using classDef.
+   - All classDef style definitions must end with a semicolon (;)
+   - You cannot apply a class style directly within a subgraph declaration
+   - Bad: `subgraph "Frontend Layer":::frontend`
+   - Good: Inside subgraph: `Example["Example Node"]:::frontend`
+
+3. Special Characters and Quotes:
+   - Any string containing special characters MUST be in quotes
+   - Bad: `EX[/api/process (Backend)]:::api`
+   - Good: `EX["/api/process (Backend)"]:::api`
+   - Bad: `API -->|calls Process()| Backend`
+   - Good: `API -->|"calls Process()"| Backend`
+
+4. Relationships and Labels:
+   - No spaces in relationship label syntax
+   - Bad: `A -->| "example relationship" | B`
+   - Good: `A -->|"example relationship"| B`
+
+5. Subgraphs:
+   - Cannot give subgraphs an alias
+   - Bad: `subgraph A "Layer A"`
+   - Good: `subgraph "Layer A"`
+
+For general direction, here is a complete example with proper formatting:
+
 graph TD 
-    %% Global entities
-    A("Entity A"):::external
-    %% more...
-
-    %% Subgraphs and modules
-    subgraph "Layer A"
-        A1("Module A"):::example
-        %% more modules...
-        %% inner subgraphs if needed...
+    %% Frontend Components
+    subgraph "Frontend Layer"
+        UI["User Interface"]:::frontend
+        Form["Input Form"]:::frontend
+        Display["Display Component"]:::frontend
     end
 
-    %% more subgraphs, modules, etc...
+    %% Backend Components
+    subgraph "Backend Layer"
+        API["REST API"]:::backend
+        Process["Data Processor"]:::backend
+        Cache["Redis Cache"]:::database
+    end
 
     %% Connections
-    A -->|"relationship"| B
-    %% and a lot more...
+    UI -->|"submits data"| Form
+    Form -->|"validates"| API
+    API -->|"processes"| Process
+    Process -->|"caches"| Cache
+    Cache -->|"returns data"| Display
 
     %% Click Events
-    click A1 "example/example.js"
-    %% and a lot more...
+    click UI "src/components/ui.tsx"
+    click API "backend/api/main.py"
 
     %% Styles
-    classDef frontend fill:#f9f,stroke:#333,stroke-width:2px
-    classDef backend fill:#bbf,stroke:#333,stroke-width:2px
-    classDef database fill:#dfd,stroke:#333,stroke-width:2px
-    classDef external fill:#fff,stroke:#333,stroke-width:2px
-    classDef solana fill:#ffd700,stroke:#333,stroke-width:2px
-```
+    classDef frontend fill:#f9f,stroke:#333,stroke-width:2px;
+    classDef backend fill:#bbf,stroke:#333,stroke-width:2px;
+    classDef database fill:#dfd,stroke:#333,stroke-width:2px;
+	 classDef external fill:#0df,stroke:#333,stroke-width:2px;
+	 classDef solana fill:#ffd700,stroke:#333,stroke-width:2px;
 
-EXTREMELY Important notes on syntax!!! (PAY ATTENTION TO THIS):
-- Make sure to add colour to the diagram!!! This is extremely critical.
-- You MUST include style definitions for any classes you use (e.g., frontend, backend, database, etc.) using classDef.
-- In Mermaid.js syntax, we cannot include special characters for nodes without being inside quotes! For example: `EX[/api/process (Backend)]:::api` and `API -->|calls Process()| Backend` are two examples of syntax errors. They should be `EX["/api/process (Backend)"]:::api` and `API -->|"calls Process()"| Backend` respectively. Notice the quotes. This is extremely important. Make sure to include quotes for any string that contains special characters.
-- In Mermaid.js syntax, you cannot apply a class style directly within a subgraph declaration. For example: `subgraph "Frontend Layer":::frontend` is a syntax error. However, you can apply them to nodes within the subgraph. For example: `Example["Example Node"]:::frontend` is valid, and `class Example1,Example2 frontend` is valid.
-- In Mermaid.js syntax, there cannot be spaces in the relationship label names. For example: `A -->| "example relationship" | B` is a syntax error. It should be `A -->|"example relationship"| B` 
-- In Mermaid.js syntax, you cannot give subgraphs an alias like nodes. For example: `subgraph A "Layer A"` is a syntax error. It should be `subgraph "Layer A"` 
+Remember: Every node must be properly formatted with an ID and label, and every style must be properly defined with a semicolon at the end.
 """
 # ^^^ note: ive generated a few diagrams now and claude still writes incorrect mermaid code sometimes. in the future, refer to those generated diagrams and add important instructions to the prompt above to avoid those mistakes. examples are best.
 
